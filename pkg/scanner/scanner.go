@@ -1,0 +1,115 @@
+package scanner
+
+import (
+	"context"
+	"fmt"
+	"time"
+
+	"k8s-scanner/pkg/k8s"
+	"k8s-scanner/pkg/rules"
+	"github.com/sirupsen/logrus"
+)
+
+type scanner struct {
+	client   *k8s.Client
+	registry *RuleRegistry
+	config   *Config
+}
+
+func New(config *Config) (Scanner, error) {
+	client, err := k8s.NewClient(config.KubeConfig)
+	if err != nil {
+		return nil, fmt.Errorf("failed to create Kubernetes client: %w", err)
+	}
+
+	registry := NewRuleRegistry()
+	
+	for _, standard := range config.Standards {
+		switch standard {
+		case "cis":
+			rules.RegisterCISRules(registry)
+		case "nist":
+			rules.RegisterNISTRules(registry)
+		default:
+			logrus.WithField("standard", standard).Warn("Unknown standard, skipping")
+		}
+	}
+
+	return &scanner{
+		client:   client,
+		registry: registry,
+		config:   config,
+	}, nil
+}
+
+func (s *scanner) Scan() (*ScanResults, error) {
+	ctx := context.Background()
+	
+	logrus.Info("Starting security scan")
+	start := time.Now()
+
+	var allFindings []Finding
+	var rulesToRun []Rule
+
+	if len(s.config.Standards) == 0 {
+		rulesToRun = s.registry.GetRules()
+	} else {
+		for _, standard := range s.config.Standards {
+			rulesToRun = append(rulesToRun, s.registry.GetRulesByStandard(standard)...)
+		}
+	}
+
+	for _, rule := range rulesToRun {
+		logrus.WithFields(logrus.Fields{
+			"rule_id":   rule.ID(),
+			"standard":  rule.Standard(),
+			"severity":  rule.Severity(),
+		}).Debug("Running rule")
+
+		findings, err := rule.Check(ctx, s.client)
+		if err != nil {
+			logrus.WithError(err).WithField("rule_id", rule.ID()).Error("Rule check failed")
+			continue
+		}
+
+		allFindings = append(allFindings, findings...)
+	}
+
+	summary := s.calculateSummary(allFindings)
+	
+	results := &ScanResults{
+		Timestamp: start,
+		Summary:   summary,
+		Findings:  allFindings,
+	}
+
+	duration := time.Since(start)
+	logrus.WithFields(logrus.Fields{
+		"duration": duration,
+		"findings": len(allFindings),
+		"passed":   summary.Passed,
+		"failed":   summary.Failed,
+		"warnings": summary.Warnings,
+	}).Info("Scan completed")
+
+	return results, nil
+}
+
+func (s *scanner) calculateSummary(findings []Finding) Summary {
+	summary := Summary{
+		Total: len(findings),
+	}
+
+	for _, finding := range findings {
+		switch finding.Status {
+		case StatusPassed:
+			summary.Passed++
+		case StatusFailed:
+			summary.Failed++
+		case StatusWarning:
+			summary.Warnings++
+		}
+	}
+
+	return summary
+}

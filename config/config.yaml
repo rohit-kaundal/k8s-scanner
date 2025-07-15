@@ -1,0 +1,84 @@
+scanner:
+  # Kubernetes configuration
+  kubeconfig: ""  # Path to kubeconfig file (empty = use default)
+  
+  # Standards to scan
+  standards:
+    - cis
+    - nist
+  
+  # Namespace filtering
+  namespace: ""  # Empty = all namespaces
+  exclude_namespaces:
+    - kube-system
+    - kube-public
+    - kube-node-lease
+  
+  # Output configuration
+  output:
+    format: text  # text, json, yaml
+    verbose: false
+  
+  # Rule configuration
+  rules:
+    cis:
+      enabled: true
+      rules:
+        CIS-5.1.1:
+          enabled: true
+          severity: high
+        CIS-5.1.2:
+          enabled: true
+          severity: high
+        CIS-5.1.3:
+          enabled: true
+          severity: high
+        CIS-5.1.4:
+          enabled: true
+          severity: medium
+        CIS-5.1.5:
+          enabled: true
+          severity: high
+        CIS-5.1.6:
+          enabled: true
+          severity: high
+        CIS-5.1.7:
+          enabled: true
+          severity: high
+        CIS-5.1.8:
+          enabled: true
+          severity: medium
+        CIS-5.1.9:
+          enabled: true
+          severity: medium
+        CIS-5.1.10:
+          enabled: true
+          severity: medium
+    
+    nist:
+      enabled: true
+      rules:
+        NIST-4.1.1:
+          enabled: true
+          severity: high
+        NIST-4.2.1:
+          enabled: true
+          severity: high
+        NIST-4.3.1:
+          enabled: true
+          severity: medium
+        NIST-4.4.1:
+          enabled: true
+          severity: medium
+        NIST-4.5.1:
+          enabled: true
+          severity: high
+        NIST-4.6.1:
+          enabled: true
+          severity: medium
+        NIST-4.7.1:
+          enabled: true
+          severity: low
+        NIST-4.8.1:
+          enabled: true
+          severity: medium

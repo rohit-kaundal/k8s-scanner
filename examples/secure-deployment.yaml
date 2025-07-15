@@ -1,0 +1,125 @@
+# Example deployment with security best practices
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: secure-app
+  namespace: default
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: secure-app
+  template:
+    metadata:
+      labels:
+        app: secure-app
+      annotations:
+        # CIS-5.1.9: AppArmor profile
+        container.apparmor.security.beta.kubernetes.io/web: runtime/default
+        # NIST-4.7.1: Monitoring annotation
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "8080"
+    spec:
+      serviceAccountName: secure-app-sa  # NIST-4.6.1: Dedicated service account
+      automountServiceAccountToken: false  # CIS-5.1.10: Disable auto-mounting
+      securityContext:
+        # CIS-5.1.8: Seccomp profile
+        seccompProfile:
+          type: RuntimeDefault
+        runAsNonRoot: true  # NIST-4.2.1: Non-root user
+        runAsUser: 1000
+        fsGroup: 2000
+      containers:
+      - name: web
+        image: nginx:1.21.6  # NIST-4.1.1: Specific version tag
+        ports:
+        - containerPort: 8080
+        securityContext:
+          privileged: false  # CIS-5.1.2: Not privileged
+          allowPrivilegeEscalation: false  # CIS-5.1.3: No privilege escalation
+          runAsNonRoot: true  # NIST-4.2.1: Non-root user
+          runAsUser: 1000
+          readOnlyRootFilesystem: true  # NIST-4.2.1: Read-only root filesystem
+          # CIS-5.1.4: Drop all capabilities
+          capabilities:
+            drop:
+            - ALL
+            add:
+            - NET_BIND_SERVICE
+        env:
+        - name: DATABASE_PASSWORD
+          valueFrom:
+            secretKeyRef:  # NIST-4.5.1: Secret from Secret resource
+              name: app-secrets
+              key: db-password
+        # NIST-4.4.1: Resource limits
+        resources:
+          limits:
+            cpu: "500m"
+            memory: "512Mi"
+          requests:
+            cpu: "100m"
+            memory: "128Mi"
+        volumeMounts:
+        - name: tmp
+          mountPath: /tmp
+        - name: cache
+          mountPath: /var/cache/nginx
+      volumes:
+      - name: tmp
+        emptyDir: {}
+      - name: cache
+        emptyDir: {}
+      # CIS-5.1.5/6/7: Not using host namespaces
+      hostNetwork: false
+      hostPID: false
+      hostIPC: false
+
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: secure-app-sa
+  namespace: default
+automountServiceAccountToken: false  # CIS-5.1.10: Disable auto-mounting
+
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: app-secrets
+  namespace: default
+type: Opaque
+data:
+  db-password: c3VwZXJzZWNyZXQxMjM=  # base64 encoded "supersecret123"
+
+---
+# NIST-4.3.1: Network policy for network segmentation
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: secure-app-netpol
+  namespace: default
+spec:
+  podSelector:
+    matchLabels:
+      app: secure-app
+  policyTypes:
+  - Ingress
+  - Egress
+  ingress:
+  - from:
+    - namespaceSelector:
+        matchLabels:
+          name: default
+    ports:
+    - protocol: TCP
+      port: 8080
+  egress:
+  - to: []
+    ports:
+    - protocol: TCP
+      port: 53
+    - protocol: UDP
+      port: 53
