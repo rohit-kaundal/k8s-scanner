@@ -13,6 +13,7 @@ type Config struct {
 
 type Scanner interface {
 	Scan() (*ScanResults, error)
+	SetQuietMode(quiet bool)
 }
 
 type ScanResults struct {

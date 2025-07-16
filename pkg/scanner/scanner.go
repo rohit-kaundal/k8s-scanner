@@ -7,13 +7,15 @@ import (
 
 	"k8s-scanner/pkg/k8s"
 	"k8s-scanner/pkg/rules"
+	"k8s-scanner/pkg/ui"
 	"github.com/sirupsen/logrus"
 )
 
 type scanner struct {
-	client   *k8s.Client
-	registry *RuleRegistry
-	config   *Config
+	client     *k8s.Client
+	registry   *RuleRegistry
+	config     *Config
+	terminalUI *ui.TerminalUI
 }
 
 func New(config *Config) (Scanner, error) {
@@ -36,10 +38,16 @@ func New(config *Config) (Scanner, error) {
 	}
 
 	return &scanner{
-		client:   client,
-		registry: registry,
-		config:   config,
+		client:     client,
+		registry:   registry,
+		config:     config,
+		terminalUI: ui.NewTerminalUI(false), // Default to non-quiet mode
 	}, nil
+}
+
+// SetQuietMode sets the quiet mode for the scanner's terminal UI
+func (s *scanner) SetQuietMode(quiet bool) {
+	s.terminalUI = ui.NewTerminalUI(quiet)
 }
 
 func (s *scanner) Scan() (*ScanResults, error) {
@@ -59,6 +67,9 @@ func (s *scanner) Scan() (*ScanResults, error) {
 		}
 	}
 
+	// Create progress bar for rule execution
+	progressBar := s.terminalUI.CreateProgressBar(len(rulesToRun), "Executing security rules")
+
 	for _, rule := range rulesToRun {
 		logrus.WithFields(logrus.Fields{
 			"rule_id":   rule.ID(),
@@ -69,10 +80,12 @@ func (s *scanner) Scan() (*ScanResults, error) {
 		findings, err := rule.Check(ctx, s.client, s.config)
 		if err != nil {
 			logrus.WithError(err).WithField("rule_id", rule.ID()).Error("Rule check failed")
+			progressBar.Add(1)
 			continue
 		}
 
 		allFindings = append(allFindings, findings...)
+		progressBar.Add(1)
 	}
 
 	summary := s.calculateSummary(allFindings)
