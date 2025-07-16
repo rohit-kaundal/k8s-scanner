@@ -17,6 +17,7 @@ var (
 	standards  []string
 	namespace  string
 	quietMode  bool
+	paginate   bool
 )
 
 var scanCmd = &cobra.Command{

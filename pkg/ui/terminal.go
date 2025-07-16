@@ -47,7 +47,7 @@ func (ui *TerminalUI) ShowBanner() {
 	banner := `
 ╔═══════════════════════════════════════════════════════════════════════════════╗
 ║                    Kubernetes Security Scanner                                ║
-║                     CIS Benchmark & NIST SP 800-190                         ║
+║                     CIS Benchmark & NIST SP 800-190                           ║
 ╚═══════════════════════════════════════════════════════════════════════════════╝
 `
 	ui.TypeWriterLine(banner, 2*time.Millisecond)

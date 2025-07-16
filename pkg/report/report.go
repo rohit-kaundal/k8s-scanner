@@ -83,31 +83,32 @@ func (r *reporter) generateYAML(results *scanner.ScanResults, writer io.Writer) 
 }
 
 func (r *reporter) generateText(results *scanner.ScanResults, writer io.Writer) error {
-	fmt.Fprintf(writer, "Kubernetes Security Scan Report\n")
-	fmt.Fprintf(writer, "===============================\n\n")
+	// Create color printer
+	cp := NewColorPrinter(writer)
 	
-	fmt.Fprintf(writer, "Scan Time: %s\n", results.Timestamp.Format(time.RFC3339))
-	fmt.Fprintf(writer, "Total Findings: %d\n", results.Summary.Total)
-	fmt.Fprintf(writer, "Passed: %d\n", results.Summary.Passed)
-	fmt.Fprintf(writer, "Failed: %d\n", results.Summary.Failed)
-	fmt.Fprintf(writer, "Warnings: %d\n\n", results.Summary.Warnings)
-
+	// Print enhanced header
+	cp.PrintTitle("🔐 KUBERNETES SECURITY SCAN REPORT")
+	cp.PrintSeparator("═", 80)
+	cp.Printf("\n")
+	
+	// Print scan metadata
+	cp.PrintSubtitle("📅 SCAN METADATA")
+	cp.PrintSeparator("─", 40)
+	cp.Printf("Scan Time: %s\n", cp.info(results.Timestamp.Format(time.RFC3339)))
+	cp.Printf("\n")
+	
+	// Print colored summary stats
+	PrintColoredSummaryStats(results.Summary, cp)
+	cp.Printf("\n")
+	
 	if len(results.Findings) == 0 {
-		fmt.Fprintf(writer, "No findings to report.\n")
+		cp.PrintSuccess("🎉 No findings to report - your cluster is secure!\n")
 		return nil
 	}
-
-	grouped := r.groupByStandard(results.Findings)
 	
-	for standard, findings := range grouped {
-		fmt.Fprintf(writer, "%s Standard\n", strings.ToUpper(standard))
-		fmt.Fprintf(writer, "%s\n", strings.Repeat("-", len(standard)+9))
-		
-		r.printFindingsTable(findings, writer)
-		fmt.Fprintf(writer, "\n")
-	}
-
-	r.printDetailedFindings(results.Findings, writer)
+	// Print aggregated vulnerability analysis
+	agg := AggregateVulnerabilities(results.Findings)
+	PrintAggregatedSummary(agg, cp)
 	
 	return nil
 }
