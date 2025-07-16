@@ -60,6 +60,7 @@ go install github.com/rohit-kaundal/k8s-scanner@latest
    ./k8s-scanner scan --standards cis,nist
    ```
 
+
 ## Usage
 
 ### Command Line Options
@@ -182,31 +183,107 @@ The scanner implements NIST Application Container Security Guide controls:
 ### Text Format
 
 ```
-Kubernetes Security Scan Report
-===============================
+✅ Scan completed successfully!
+📊 Total findings: 42
+⏱️  Duration: 5.2s
 
+🔐 KUBERNETES SECURITY SCAN REPORT
+════════════════════════════════════════════════════════════════════════════════
+
+📅 SCAN METADATA
+────────────────────────────────────────
 Scan Time: 2024-01-15T10:30:00Z
-Total Findings: 15
-Passed: 8
-Failed: 5
-Warnings: 2
 
-CIS Standard
-------------
-ID           Title                                    Severity  Status   Resource
-CIS-5.1.2    Minimize privileged containers          high      failed   Pod/nginx-pod
-CIS-5.1.3    Minimize privilege escalation           high      failed   Pod/app-pod
+📋 SCAN SUMMARY
+────────────────────────────────────────
+Total Checks: 42
+✅ Passed: 12 (28.6%)
+❌ Failed: 8 (19.0%)
+⚠️  Warnings: 22 (52.4%)
 
-Failed Checks
-=============
+⚠️  Some warnings found. Consider reviewing them.
 
-[CIS-5.1.2] Minimize the admission of privileged containers
-Standard: CIS (Section 5.1.2)
-Severity: high
-Status: failed
-Resource: Pod/nginx-pod in namespace default
-Description: Container 'nginx' is running in privileged mode
-Remediation: Remove privileged: true from container security context
+🔍 VULNERABILITY ANALYSIS SUMMARY
+════════════════════════════════════════════════════════════════════════════════
+
+📊 OVERALL STATISTICS
+──────────────────────────────────────────────────
+Total Security Checks: 42
+✅ Passed: 12
+❌ Failed: 8
+⚠️  Warnings: 22
+Pass Rate: 28.6%
+
+🎯 SEVERITY DISTRIBUTION
+──────────────────────────────────────────────────
+🟠 HIGH: 12 (40.0%)
+  [████████████░░░░░░░░░░░░░░░░░░]
+🟡 MEDIUM: 15 (50.0%)
+  [███████████████░░░░░░░░░░░░░░░]
+🔵 LOW: 3 (10.0%)
+  [███░░░░░░░░░░░░░░░░░░░░░░░░░░░]
+
+📋 STANDARD DISTRIBUTION
+──────────────────────────────────────────────────
+📖 CIS: 18 (60.0%)
+  [██████████████████░░░░░░░]
+📖 NIST: 12 (40.0%)
+  [████████████░░░░░░░░░░░░░]
+
+🔥 TOP VULNERABILITIES
+──────────────────────────────────────────────────
+1. Minimize the admission of containers with allowPrivilegeEscalation
+   Standard: CIS | Severity: 🟠 HIGH | Count: 6
+   Affected: Pod/production/web-app-7c88d7ccdc-z6qfx, Pod/production/api-server-dcd676b9b-djcms, Pod/staging/worker-f5c9f976c-pct89... and 3 more
+   Container allows privilege escalation
+
+2. Image signing and verification
+   Standard: NIST | Severity: 🟡 MEDIUM | Count: 5
+   Affected: Pod/production/web-app-7c88d7ccdc-z6qfx, Pod/production/api-server-dcd676b9b-djcms, Pod/staging/worker-f5c9f976c-pct89... and 2 more
+   Container uses image from untrusted registry
+
+3. Secret management and security
+   Standard: NIST | Severity: 🟠 HIGH | Count: 4
+   Affected: Pod/production/web-app-7c88d7ccdc-z6qfx, Pod/production/api-server-dcd676b9b-djcms
+   Container may expose secrets in environment variables
+
+4. Minimize the admission of containers with capabilities
+   Standard: CIS | Severity: 🟠 HIGH | Count: 4
+   Affected: Pod/production/web-app-7c88d7ccdc-z6qfx, Pod/production/api-server-dcd676b9b-djcms, Pod/staging/worker-f5c9f976c-pct89... and 1 more
+   Container has excessive capabilities
+
+5. Container runtime security
+   Standard: NIST | Severity: 🟡 MEDIUM | Count: 3
+   Affected: Pod/production/web-app-7c88d7ccdc-z6qfx, Pod/production/api-server-dcd676b9b-djcms, Pod/staging/worker-f5c9f976c-pct89
+   Container has no security context
+
+
+⚠️  CRITICAL RESOURCES
+──────────────────────────────────────────────────
+1. Pod/production/web-app-7c88d7ccdc-z6qfx
+   Total Issues: 8
+   Severity Breakdown: HIGH: 4 | MEDIUM: 3 | LOW: 1
+   Top Issues: Minimize the admission of containers with allowPrivilegeEscalation, Minimize the admission of containers with capabilities... and 6 more
+
+2. Pod/production/api-server-dcd676b9b-djcms
+   Total Issues: 7
+   Severity Breakdown: HIGH: 3 | MEDIUM: 3 | LOW: 1
+   Top Issues: Minimize the admission of containers with allowPrivilegeEscalation, Secret management and security... and 5 more
+
+3. Pod/staging/worker-f5c9f976c-pct89
+   Total Issues: 6
+   Severity Breakdown: HIGH: 2 | MEDIUM: 3 | LOW: 1
+   Top Issues: Minimize the admission of containers with allowPrivilegeEscalation, Image signing and verification... and 4 more
+
+4. Pod/staging/database-b6684f856-h6wjh
+   Total Issues: 5
+   Severity Breakdown: HIGH: 1 | MEDIUM: 3 | LOW: 1
+   Top Issues: Container runtime security, Logging and monitoring... and 3 more
+
+5. Pod/development/test-app-85bb59d798-456vt
+   Total Issues: 4
+   Severity Breakdown: MEDIUM: 3 | LOW: 1
+   Top Issues: Image signing and verification, Network segmentation... and 2 more
 ```
 
 ### JSON Format
