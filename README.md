@@ -17,7 +17,7 @@ A comprehensive Kubernetes security scanner that checks for misconfigurations ag
 ### From Source
 
 ```bash
-git clone https://github.com/your-org/k8s-scanner.git
+git clone https://github.com/rohit-kaundal/k8s-scanner.git
 cd k8s-scanner
 go build -o k8s-scanner
 ```
@@ -25,7 +25,7 @@ go build -o k8s-scanner
 ### Using Go Install
 
 ```bash
-go install github.com/your-org/k8s-scanner@latest
+go install github.com/rohit-kaundal/k8s-scanner@latest
 ```
 
 ## Quick Start
