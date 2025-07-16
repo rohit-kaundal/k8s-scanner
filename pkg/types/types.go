@@ -71,7 +71,7 @@ type Rule interface {
 	Standard() string
 	Section() string
 	Severity() Severity
-	Check(ctx context.Context, client interface{}) ([]Finding, error)
+	Check(ctx context.Context, client interface{}, config *Config) ([]Finding, error)
 }
 
 type RuleRegistry struct {

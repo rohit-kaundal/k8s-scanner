@@ -39,7 +39,7 @@ func (r *SecretManagementRule) Severity() types.Severity {
 	return types.SeverityHigh
 }
 
-func (r *SecretManagementRule) Check(ctx context.Context, client interface{}) ([]types.Finding, error) {
+func (r *SecretManagementRule) Check(ctx context.Context, client interface{}, config *types.Config) ([]types.Finding, error) {
 	k8sClient, ok := client.(*k8s.Client)
 	if !ok {
 		return nil, fmt.Errorf("expected k8s client")
@@ -47,7 +47,7 @@ func (r *SecretManagementRule) Check(ctx context.Context, client interface{}) ([
 
 	var findings []types.Finding
 
-	pods, err := k8sClient.GetPods(ctx, "")
+	pods, err := k8sClient.GetPods(ctx, config.Namespace)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get pods: %w", err)
 	}
@@ -85,7 +85,7 @@ func (r *SecretManagementRule) Check(ctx context.Context, client interface{}) ([
 		}
 	}
 
-	secrets, err := k8sClient.GetSecrets(ctx, "")
+	secrets, err := k8sClient.GetSecrets(ctx, config.Namespace)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get secrets: %w", err)
 	}

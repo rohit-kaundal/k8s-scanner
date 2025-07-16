@@ -66,7 +66,7 @@ func (s *scanner) Scan() (*ScanResults, error) {
 			"severity":  rule.Severity(),
 		}).Debug("Running rule")
 
-		findings, err := rule.Check(ctx, s.client)
+		findings, err := rule.Check(ctx, s.client, s.config)
 		if err != nil {
 			logrus.WithError(err).WithField("rule_id", rule.ID()).Error("Rule check failed")
 			continue

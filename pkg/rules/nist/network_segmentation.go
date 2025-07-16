@@ -38,7 +38,7 @@ func (r *NetworkSegmentationRule) Severity() types.Severity {
 	return types.SeverityMedium
 }
 
-func (r *NetworkSegmentationRule) Check(ctx context.Context, client interface{}) ([]types.Finding, error) {
+func (r *NetworkSegmentationRule) Check(ctx context.Context, client interface{}, config *types.Config) ([]types.Finding, error) {
 	k8sClient, ok := client.(*k8s.Client)
 	if !ok {
 		return nil, fmt.Errorf("expected k8s client")

@@ -38,7 +38,7 @@ func (r *AccessControlRule) Severity() types.Severity {
 	return types.SeverityMedium
 }
 
-func (r *AccessControlRule) Check(ctx context.Context, client interface{}) ([]types.Finding, error) {
+func (r *AccessControlRule) Check(ctx context.Context, client interface{}, config *types.Config) ([]types.Finding, error) {
 	k8sClient, ok := client.(*k8s.Client)
 	if !ok {
 		return nil, fmt.Errorf("expected k8s client")
@@ -46,7 +46,7 @@ func (r *AccessControlRule) Check(ctx context.Context, client interface{}) ([]ty
 
 	var findings []types.Finding
 
-	serviceAccounts, err := k8sClient.GetServiceAccounts(ctx, "")
+	serviceAccounts, err := k8sClient.GetServiceAccounts(ctx, config.Namespace)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get service accounts: %w", err)
 	}
