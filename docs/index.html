@@ -620,6 +620,7 @@
                 <li><a href="#features">Features</a></li>
                 <li><a href="#standards">Standards</a></li>
                 <li><a href="#installation">Installation</a></li>
+                <li><a href="#customization">Customization</a></li>
                 <li><a href="#examples">Examples</a></li>
                 <li><a href="https://github.com/rohit-kaundal/k8s-scanner" target="_blank">GitHub</a></li>
             </ul>
@@ -667,6 +668,11 @@
                         <i class="fas fa-file-code feature-icon"></i>
                         <h3>Multiple Output Formats</h3>
                         <p>Text, JSON, YAML, and HTML reporting with interactive filtering, detailed findings, and professional styling suitable for presentations.</p>
+                    </div>
+                    <div class="feature-card">
+                        <i class="fas fa-code feature-icon"></i>
+                        <h3>JSON-Based Rules</h3>
+                        <p>External rule definitions in JSON format for easy customization and maintenance without code changes. Supports complex field evaluation and custom operators.</p>
                     </div>
                     <div class="feature-card">
                         <i class="fas fa-cogs feature-icon"></i>
@@ -758,6 +764,126 @@ go install github.com/rohit-kaundal/k8s-scanner@latest
                         <div class="install-card">
                             <h3><i class="fas fa-filter"></i> Namespace Scan</h3>
                             <div class="code-block">./k8s-scanner scan --namespace production</div>
+                        </div>
+                        <div class="install-card">
+                            <h3><i class="fas fa-folder-open"></i> Custom Rules</h3>
+                            <div class="code-block">./k8s-scanner scan --rules-dir /path/to/custom/rules</div>
+                        </div>
+                        <div class="install-card">
+                            <h3><i class="fas fa-list"></i> Specific Standards</h3>
+                            <div class="code-block">./k8s-scanner scan --standards cis,nist</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="customization" class="installation fade-in">
+            <div class="container">
+                <h2>🛠️ JSON-Based Rules Customization</h2>
+                <p style="text-align: center; margin-bottom: 3rem; opacity: 0.9;">
+                    K8s Security Scanner uses external JSON files to define security rules, making it easy to customize and maintain without code changes.
+                </p>
+                
+                <div class="install-methods">
+                    <div class="install-card">
+                        <h3><i class="fas fa-file-code"></i> Rule Structure</h3>
+                        <div class="code-block" style="font-size: 0.8rem;">{
+  "id": "CIS-5.1.2",
+  "title": "Minimize privileged containers",
+  "description": "Check for privileged containers",
+  "standard": "cis",
+  "severity": "high",
+  "check": {
+    "type": "pod",
+    "conditions": [{
+      "field": "spec.containers[*].securityContext.privileged",
+      "operator": "equals",
+      "value": true,
+      "expected_result": "fail"
+    }]
+  },
+  "remediation": "Set privileged: false",
+  "references": ["https://kubernetes.io/docs/..."]
+}</div>
+                    </div>
+                    
+                    <div class="install-card">
+                        <h3><i class="fas fa-folder"></i> Rule Directories</h3>
+                        <div class="code-block">config/rules/
+├── schema.json     # JSON schema for validation
+├── cis.json       # CIS Kubernetes Benchmark rules
+├── nist.json      # NIST SP 800-190 rules
+└── custom.json    # Your custom rules</div>
+                    </div>
+                </div>
+                
+                <div style="margin-top: 3rem;">
+                    <h3 style="text-align: center; color: #00ff88; margin-bottom: 2rem;">🔧 Supported Field Operators</h3>
+                    <div class="install-methods">
+                        <div class="install-card">
+                            <h3><i class="fas fa-equals"></i> Value Matching</h3>
+                            <div class="code-block">equals / not_equals
+contains / not_contains
+matches / not_matches (regex)
+greater_than / less_than</div>
+                        </div>
+                        <div class="install-card">
+                            <h3><i class="fas fa-search"></i> Field Presence</h3>
+                            <div class="code-block">exists / not_exists
+
+# Example: Check if field exists
+"field": "spec.securityContext.runAsNonRoot",
+"operator": "exists",
+"expected_result": "pass"</div>
+                        </div>
+                        <div class="install-card">
+                            <h3><i class="fas fa-list"></i> Array Access</h3>
+                            <div class="code-block"># Access array elements with [*]
+"field": "spec.containers[*].securityContext.privileged"
+
+# Nested array access
+"field": "spec.containers[*].env[*].value"</div>
+                        </div>
+                        <div class="install-card">
+                            <h3><i class="fas fa-tags"></i> Labels & Annotations</h3>
+                            <div class="code-block"># Access labels
+"field": "metadata.labels['app.kubernetes.io/name']"
+
+# Access annotations
+"field": "metadata.annotations['security.custom/enabled']"</div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div style="margin-top: 3rem;">
+                    <h3 style="text-align: center; color: #00ff88; margin-bottom: 2rem;">✨ Adding Custom Rules</h3>
+                    <div class="install-methods">
+                        <div class="install-card">
+                            <h3><i class="fas fa-plus"></i> Create Rule File</h3>
+                            <div class="code-block"># Create custom-rules.json
+{
+  "version": "1.0.0",
+  "rules": [
+    {
+      "id": "CUSTOM-1.0.1",
+      "title": "Custom security check",
+      "standard": "custom",
+      "severity": "medium",
+      "enabled": true,
+      "check": { ... }
+    }
+  ]
+}</div>
+                        </div>
+                        <div class="install-card">
+                            <h3><i class="fas fa-play"></i> Use Custom Rules</h3>
+                            <div class="code-block"># Test with custom rules directory
+./k8s-scanner scan --rules-dir /path/to/custom/rules
+
+# Or place in default location
+mkdir -p config/rules
+cp custom-rules.json config/rules/</div>
                         </div>
                     </div>
                 </div>
