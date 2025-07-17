@@ -1,0 +1,993 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>K8s Security Scanner - Kubernetes Security Made Simple</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #0a0a0a 0%, #1a1a2e 50%, #16213e 100%);
+            color: #ffffff;
+            overflow-x: hidden;
+        }
+
+        /* Animated Background */
+        .bg-animation {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+            opacity: 0.1;
+        }
+
+        .bg-animation::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><circle cx="50" cy="50" r="2" fill="%23ffffff" opacity="0.3"/></svg>') repeat;
+            animation: float 20s infinite linear;
+        }
+
+        @keyframes float {
+            0% { transform: translateY(0px) rotate(0deg); }
+            100% { transform: translateY(-100px) rotate(360deg); }
+        }
+
+        /* Header */
+        header {
+            position: fixed;
+            top: 0;
+            width: 100%;
+            background: rgba(0, 0, 0, 0.9);
+            backdrop-filter: blur(10px);
+            z-index: 1000;
+            padding: 1rem 0;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        nav {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 2rem;
+        }
+
+        .logo {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: #00ff88;
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .logo i {
+            font-size: 1.8rem;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+        }
+
+        .nav-links {
+            display: flex;
+            list-style: none;
+            gap: 2rem;
+        }
+
+        .nav-links a {
+            color: #ffffff;
+            text-decoration: none;
+            transition: color 0.3s ease;
+            padding: 0.5rem 1rem;
+            border-radius: 5px;
+        }
+
+        .nav-links a:hover {
+            color: #00ff88;
+            background: rgba(0, 255, 136, 0.1);
+        }
+
+        /* Main Content */
+        main {
+            padding-top: 80px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 2rem;
+        }
+
+        /* Hero Section */
+        .hero {
+            padding: 5rem 0;
+            text-align: center;
+            position: relative;
+        }
+
+        .hero::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 200px;
+            height: 200px;
+            background: radial-gradient(circle, rgba(0, 255, 136, 0.2) 0%, transparent 70%);
+            border-radius: 50%;
+            animation: glow 3s ease-in-out infinite alternate;
+        }
+
+        @keyframes glow {
+            0% { transform: translateX(-50%) scale(0.8); opacity: 0.5; }
+            100% { transform: translateX(-50%) scale(1.2); opacity: 1; }
+        }
+
+        .hero h1 {
+            font-size: 3.5rem;
+            margin-bottom: 1rem;
+            background: linear-gradient(45deg, #00ff88, #0099ff);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            animation: slideInDown 1s ease-out;
+        }
+
+        @keyframes slideInDown {
+            from { transform: translateY(-50px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+
+        .hero p {
+            font-size: 1.3rem;
+            margin-bottom: 2rem;
+            opacity: 0.9;
+            animation: slideInUp 1s ease-out 0.2s both;
+        }
+
+        @keyframes slideInUp {
+            from { transform: translateY(50px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+
+        .cta-buttons {
+            display: flex;
+            justify-content: center;
+            gap: 1rem;
+            margin-top: 2rem;
+            animation: fadeIn 1s ease-out 0.4s both;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        .btn {
+            padding: 1rem 2rem;
+            border: none;
+            border-radius: 8px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+            transition: left 0.5s ease;
+        }
+
+        .btn:hover::before {
+            left: 100%;
+        }
+
+        .btn-primary {
+            background: linear-gradient(45deg, #00ff88, #0099ff);
+            color: #000000;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(0, 255, 136, 0.3);
+        }
+
+        .btn-secondary {
+            background: transparent;
+            color: #ffffff;
+            border: 2px solid #00ff88;
+        }
+
+        .btn-secondary:hover {
+            background: #00ff88;
+            color: #000000;
+            transform: translateY(-2px);
+        }
+
+        /* Features Section */
+        .features {
+            padding: 5rem 0;
+            background: rgba(0, 0, 0, 0.3);
+        }
+
+        .features h2 {
+            text-align: center;
+            font-size: 2.5rem;
+            margin-bottom: 3rem;
+            color: #00ff88;
+        }
+
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 2rem;
+            margin-top: 3rem;
+        }
+
+        .feature-card {
+            background: rgba(255, 255, 255, 0.05);
+            padding: 2rem;
+            border-radius: 15px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .feature-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 2px;
+            background: linear-gradient(90deg, #00ff88, #0099ff);
+            transform: scaleX(0);
+            transition: transform 0.3s ease;
+        }
+
+        .feature-card:hover::before {
+            transform: scaleX(1);
+        }
+
+        .feature-card:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 20px 40px rgba(0, 255, 136, 0.1);
+            border-color: #00ff88;
+        }
+
+        .feature-icon {
+            font-size: 3rem;
+            color: #00ff88;
+            margin-bottom: 1rem;
+            display: block;
+        }
+
+        .feature-card h3 {
+            font-size: 1.5rem;
+            margin-bottom: 1rem;
+            color: #ffffff;
+        }
+
+        .feature-card p {
+            opacity: 0.8;
+            line-height: 1.6;
+        }
+
+        /* Standards Section */
+        .standards {
+            padding: 5rem 0;
+        }
+
+        .standards h2 {
+            text-align: center;
+            font-size: 2.5rem;
+            margin-bottom: 3rem;
+            color: #00ff88;
+        }
+
+        .standards-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+            gap: 3rem;
+            margin-top: 3rem;
+        }
+
+        .standard-card {
+            background: linear-gradient(135deg, rgba(0, 255, 136, 0.1), rgba(0, 153, 255, 0.1));
+            padding: 2rem;
+            border-radius: 15px;
+            border: 1px solid rgba(0, 255, 136, 0.3);
+            transition: all 0.3s ease;
+        }
+
+        .standard-card:hover {
+            transform: scale(1.05);
+            box-shadow: 0 15px 30px rgba(0, 255, 136, 0.2);
+        }
+
+        .standard-card h3 {
+            font-size: 1.8rem;
+            margin-bottom: 1rem;
+            color: #00ff88;
+        }
+
+        .standard-card .controls {
+            list-style: none;
+            margin-top: 1rem;
+        }
+
+        .standard-card .controls li {
+            padding: 0.5rem 0;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .standard-card .controls li:last-child {
+            border-bottom: none;
+        }
+
+        .standard-card .controls li i {
+            color: #00ff88;
+            width: 20px;
+        }
+
+        /* Installation Section */
+        .installation {
+            padding: 5rem 0;
+            background: rgba(0, 0, 0, 0.3);
+        }
+
+        .installation h2 {
+            text-align: center;
+            font-size: 2.5rem;
+            margin-bottom: 3rem;
+            color: #00ff88;
+        }
+
+        .install-methods {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+            gap: 2rem;
+            margin-top: 3rem;
+        }
+
+        .install-card {
+            background: rgba(255, 255, 255, 0.05);
+            padding: 2rem;
+            border-radius: 15px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .install-card h3 {
+            font-size: 1.5rem;
+            margin-bottom: 1rem;
+            color: #00ff88;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .code-block {
+            background: rgba(0, 0, 0, 0.8);
+            padding: 1rem;
+            border-radius: 8px;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9rem;
+            border: 1px solid rgba(0, 255, 136, 0.3);
+            position: relative;
+            overflow-x: auto;
+        }
+
+        .code-block::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 1px;
+            background: linear-gradient(90deg, transparent, #00ff88, transparent);
+            animation: scan 2s linear infinite;
+        }
+
+        @keyframes scan {
+            0% { transform: translateX(-100%); }
+            100% { transform: translateX(100%); }
+        }
+
+        /* Example Output Section */
+        .example-output {
+            padding: 5rem 0;
+        }
+
+        .example-output h2 {
+            text-align: center;
+            font-size: 2.5rem;
+            margin-bottom: 3rem;
+            color: #00ff88;
+        }
+
+        .terminal-window {
+            background: rgba(0, 0, 0, 0.9);
+            border-radius: 15px;
+            border: 1px solid rgba(0, 255, 136, 0.3);
+            overflow: hidden;
+            margin-top: 2rem;
+            position: relative;
+        }
+
+        .terminal-header {
+            background: linear-gradient(90deg, rgba(0, 255, 136, 0.2), rgba(0, 153, 255, 0.2));
+            padding: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .terminal-buttons {
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        .terminal-button {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: #ff5555;
+        }
+
+        .terminal-button:nth-child(2) {
+            background: #ffaa00;
+        }
+
+        .terminal-button:nth-child(3) {
+            background: #00ff88;
+        }
+
+        .terminal-title {
+            margin-left: 1rem;
+            font-size: 0.9rem;
+            opacity: 0.8;
+        }
+
+        .terminal-content {
+            padding: 1.5rem;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9rem;
+            line-height: 1.6;
+            color: #00ff88;
+            white-space: pre-wrap;
+            overflow-x: auto;
+        }
+
+        /* Footer */
+        footer {
+            background: rgba(0, 0, 0, 0.8);
+            padding: 3rem 0;
+            text-align: center;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .footer-content {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 2rem;
+            margin-bottom: 2rem;
+        }
+
+        .footer-section h3 {
+            color: #00ff88;
+            margin-bottom: 1rem;
+        }
+
+        .footer-section p, .footer-section a {
+            color: rgba(255, 255, 255, 0.8);
+            text-decoration: none;
+            line-height: 1.6;
+        }
+
+        .footer-section a:hover {
+            color: #00ff88;
+        }
+
+        .social-links {
+            display: flex;
+            justify-content: center;
+            gap: 1rem;
+            margin-top: 2rem;
+        }
+
+        .social-links a {
+            color: #ffffff;
+            font-size: 1.5rem;
+            padding: 0.5rem;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.1);
+            transition: all 0.3s ease;
+        }
+
+        .social-links a:hover {
+            color: #00ff88;
+            background: rgba(0, 255, 136, 0.2);
+            transform: translateY(-3px);
+        }
+
+        .copyright {
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+            padding-top: 2rem;
+            margin-top: 2rem;
+            opacity: 0.6;
+        }
+
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            .nav-links {
+                display: none;
+            }
+
+            .hero h1 {
+                font-size: 2.5rem;
+            }
+
+            .hero p {
+                font-size: 1.1rem;
+            }
+
+            .cta-buttons {
+                flex-direction: column;
+                align-items: center;
+            }
+
+            .features-grid,
+            .standards-grid,
+            .install-methods {
+                grid-template-columns: 1fr;
+            }
+
+            .container {
+                padding: 0 1rem;
+            }
+        }
+
+        /* Scroll animations */
+        .fade-in {
+            opacity: 0;
+            transform: translateY(30px);
+            transition: all 0.6s ease;
+        }
+
+        .fade-in.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        /* Matrix effect */
+        .matrix-bg {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: -1;
+            opacity: 0.05;
+        }
+    </style>
+</head>
+<body>
+    <div class="bg-animation"></div>
+    
+    <header>
+        <nav>
+            <a href="#" class="logo">
+                <i class="fas fa-shield-alt"></i>
+                K8s Security Scanner
+            </a>
+            <ul class="nav-links">
+                <li><a href="#features">Features</a></li>
+                <li><a href="#standards">Standards</a></li>
+                <li><a href="#installation">Installation</a></li>
+                <li><a href="#examples">Examples</a></li>
+                <li><a href="https://github.com/rohit-kaundal/k8s-scanner" target="_blank">GitHub</a></li>
+            </ul>
+        </nav>
+    </header>
+
+    <main>
+        <section class="hero">
+            <div class="container">
+                <h1>Kubernetes Security Scanner</h1>
+                <p>A comprehensive security scanner that checks for misconfigurations against CIS Kubernetes Benchmark and NIST SP 800-190 standards</p>
+                <div class="cta-buttons">
+                    <a href="#installation" class="btn btn-primary">
+                        <i class="fas fa-download"></i>
+                        Get Started
+                    </a>
+                    <a href="https://github.com/rohit-kaundal/k8s-scanner" class="btn btn-secondary" target="_blank">
+                        <i class="fab fa-github"></i>
+                        View on GitHub
+                    </a>
+                </div>
+            </div>
+        </section>
+
+        <section id="features" class="features fade-in">
+            <div class="container">
+                <h2>🔐 Security Features</h2>
+                <div class="features-grid">
+                    <div class="feature-card">
+                        <i class="fas fa-check-double feature-icon"></i>
+                        <h3>CIS Kubernetes Benchmark</h3>
+                        <p>Implements security controls from the Center for Internet Security with comprehensive cluster-admin role usage, privileged container admission, and privilege escalation prevention.</p>
+                    </div>
+                    <div class="feature-card">
+                        <i class="fas fa-shield-virus feature-icon"></i>
+                        <h3>NIST SP 800-190</h3>
+                        <p>Follows NIST Application Container Security Guide with image vulnerability management, container runtime security, and network segmentation controls.</p>
+                    </div>
+                    <div class="feature-card">
+                        <i class="fas fa-chart-pie feature-icon"></i>
+                        <h3>Enhanced Terminal UI</h3>
+                        <p>Progress bars, typing effects, and colored output for better user experience with vulnerability aggregation and executive summary mode.</p>
+                    </div>
+                    <div class="feature-card">
+                        <i class="fas fa-file-code feature-icon"></i>
+                        <h3>Multiple Output Formats</h3>
+                        <p>Text, JSON, YAML, and HTML reporting with interactive filtering, detailed findings, and professional styling suitable for presentations.</p>
+                    </div>
+                    <div class="feature-card">
+                        <i class="fas fa-cogs feature-icon"></i>
+                        <h3>Configurable Rules</h3>
+                        <p>Enable/disable specific rules and customize severity levels with extensible architecture for adding new rules and standards.</p>
+                    </div>
+                    <div class="feature-card">
+                        <i class="fas fa-filter feature-icon"></i>
+                        <h3>Namespace Filtering</h3>
+                        <p>Scan specific namespaces or exclude system namespaces with support for multiple authentication methods and cloud providers.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="standards" class="standards fade-in">
+            <div class="container">
+                <h2>🛡️ Security Standards</h2>
+                <div class="standards-grid">
+                    <div class="standard-card">
+                        <h3>CIS Kubernetes Benchmark</h3>
+                        <p>Implements key security controls from the Center for Internet Security:</p>
+                        <ul class="controls">
+                            <li><i class="fas fa-shield-alt"></i> CIS-5.1.1: Cluster-admin role usage</li>
+                            <li><i class="fas fa-lock"></i> CIS-5.1.2: Privileged container admission</li>
+                            <li><i class="fas fa-user-shield"></i> CIS-5.1.3: Privilege escalation prevention</li>
+                            <li><i class="fas fa-key"></i> CIS-5.1.4: Capabilities management</li>
+                            <li><i class="fas fa-network-wired"></i> CIS-5.1.5: Host network restrictions</li>
+                            <li><i class="fas fa-server"></i> CIS-5.1.6: Host PID restrictions</li>
+                            <li><i class="fas fa-comments"></i> CIS-5.1.7: Host IPC restrictions</li>
+                            <li><i class="fas fa-fingerprint"></i> CIS-5.1.8: Seccomp profile requirements</li>
+                            <li><i class="fas fa-user-check"></i> CIS-5.1.9: AppArmor profile requirements</li>
+                            <li><i class="fas fa-id-card"></i> CIS-5.1.10: Service account token management</li>
+                        </ul>
+                    </div>
+                    <div class="standard-card">
+                        <h3>NIST SP 800-190</h3>
+                        <p>Follows NIST Application Container Security Guide controls:</p>
+                        <ul class="controls">
+                            <li><i class="fas fa-search"></i> NIST-4.1.1: Image vulnerability management</li>
+                            <li><i class="fas fa-cube"></i> NIST-4.2.1: Container runtime security</li>
+                            <li><i class="fas fa-project-diagram"></i> NIST-4.3.1: Network segmentation</li>
+                            <li><i class="fas fa-tachometer-alt"></i> NIST-4.4.1: Resource limits and quotas</li>
+                            <li><i class="fas fa-eye-slash"></i> NIST-4.5.1: Secret management</li>
+                            <li><i class="fas fa-users-cog"></i> NIST-4.6.1: Access control and RBAC</li>
+                            <li><i class="fas fa-clipboard-list"></i> NIST-4.7.1: Logging and monitoring</li>
+                            <li><i class="fas fa-certificate"></i> NIST-4.8.1: Image signing and verification</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="installation" class="installation fade-in">
+            <div class="container">
+                <h2>⚡ Quick Installation</h2>
+                <div class="install-methods">
+                    <div class="install-card">
+                        <h3><i class="fas fa-code-branch"></i> From Source</h3>
+                        <div class="code-block">
+git clone https://github.com/rohit-kaundal/k8s-scanner.git
+cd k8s-scanner
+go build -o k8s-scanner
+                        </div>
+                    </div>
+                    <div class="install-card">
+                        <h3><i class="fas fa-rocket"></i> Using Go Install</h3>
+                        <div class="code-block">
+go install github.com/rohit-kaundal/k8s-scanner@latest
+                        </div>
+                    </div>
+                </div>
+                
+                <div style="margin-top: 3rem;">
+                    <h3 style="text-align: center; color: #00ff88; margin-bottom: 2rem;">🚀 Quick Start Commands</h3>
+                    <div class="install-methods">
+                        <div class="install-card">
+                            <h3><i class="fas fa-play"></i> Basic Scan</h3>
+                            <div class="code-block">./k8s-scanner scan</div>
+                        </div>
+                        <div class="install-card">
+                            <h3><i class="fas fa-file-alt"></i> JSON Output</h3>
+                            <div class="code-block">./k8s-scanner scan --output json --file results.json</div>
+                        </div>
+                        <div class="install-card">
+                            <h3><i class="fas fa-globe"></i> HTML Report</h3>
+                            <div class="code-block">./k8s-scanner scan --output html --file security-report.html</div>
+                        </div>
+                        <div class="install-card">
+                            <h3><i class="fas fa-filter"></i> Namespace Scan</h3>
+                            <div class="code-block">./k8s-scanner scan --namespace production</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="examples" class="example-output fade-in">
+            <div class="container">
+                <h2>📊 Example Output</h2>
+                <div class="terminal-window">
+                    <div class="terminal-header">
+                        <div class="terminal-buttons">
+                            <div class="terminal-button"></div>
+                            <div class="terminal-button"></div>
+                            <div class="terminal-button"></div>
+                        </div>
+                        <div class="terminal-title">K8s Security Scanner</div>
+                    </div>
+                    <div class="terminal-content">
+✅ Scan completed successfully!
+📊 Total findings: 42
+⏱️  Duration: 5.2s
+
+🔐 KUBERNETES SECURITY SCAN REPORT
+════════════════════════════════════════════════════════════════════════════════
+
+📅 SCAN METADATA
+────────────────────────────────────────
+Scan Time: 2024-01-15T10:30:00Z
+
+📋 SCAN SUMMARY
+────────────────────────────────────────
+Total Checks: 42
+✅ Passed: 12 (28.6%)
+❌ Failed: 8 (19.0%)
+⚠️  Warnings: 22 (52.4%)
+
+⚠️  Some warnings found. Consider reviewing them.
+
+🔍 VULNERABILITY ANALYSIS SUMMARY
+════════════════════════════════════════════════════════════════════════════════
+
+📊 OVERALL STATISTICS
+──────────────────────────────────────────────────
+Total Security Checks: 42
+✅ Passed: 12
+❌ Failed: 8
+⚠️  Warnings: 22
+Pass Rate: 28.6%
+
+🎯 SEVERITY DISTRIBUTION
+──────────────────────────────────────────────────
+🟠 HIGH: 12 (40.0%)
+  [████████████░░░░░░░░░░░░░░░░░░]
+🟡 MEDIUM: 15 (50.0%)
+  [███████████████░░░░░░░░░░░░░░░]
+🔵 LOW: 3 (10.0%)
+  [███░░░░░░░░░░░░░░░░░░░░░░░░░░░]
+
+🔥 TOP VULNERABILITIES
+──────────────────────────────────────────────────
+1. Minimize the admission of containers with allowPrivilegeEscalation
+   Standard: CIS | Severity: 🟠 HIGH | Count: 6
+   Affected: Pod/production/web-app, Pod/production/api-server... and 4 more
+   Container allows privilege escalation
+
+2. Image signing and verification
+   Standard: NIST | Severity: 🟡 MEDIUM | Count: 5
+   Affected: Pod/production/web-app, Pod/production/api-server... and 3 more
+   Container uses image from untrusted registry
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <footer>
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-section">
+                    <h3>K8s Security Scanner</h3>
+                    <p>Comprehensive Kubernetes security scanner for CIS Benchmark and NIST SP 800-190 compliance checking.</p>
+                </div>
+                <div class="footer-section">
+                    <h3>Documentation</h3>
+                    <p><a href="https://github.com/rohit-kaundal/k8s-scanner">GitHub Repository</a></p>
+                    <p><a href="https://www.cisecurity.org/benchmark/kubernetes">CIS Kubernetes Benchmark</a></p>
+                    <p><a href="https://csrc.nist.gov/publications/detail/sp/800-190/final">NIST SP 800-190</a></p>
+                </div>
+                <div class="footer-section">
+                    <h3>Community</h3>
+                    <p><a href="https://github.com/rohit-kaundal/k8s-scanner/issues">Report Issues</a></p>
+                    <p><a href="https://github.com/rohit-kaundal/k8s-scanner/blob/main/CONTRIBUTING.md">Contributing</a></p>
+                    <p><a href="https://kubernetes.io/docs/concepts/security/">Kubernetes Security</a></p>
+                </div>
+            </div>
+            
+            <div class="social-links">
+                <a href="https://github.com/rohit-kaundal/k8s-scanner" target="_blank">
+                    <i class="fab fa-github"></i>
+                </a>
+                <a href="https://twitter.com/rohitkaundal" target="_blank">
+                    <i class="fab fa-twitter"></i>
+                </a>
+                <a href="https://linkedin.com/in/rohitkaundal" target="_blank">
+                    <i class="fab fa-linkedin"></i>
+                </a>
+                <a href="https://www.rohitkaundal.com" target="_blank">
+                    <i class="fas fa-globe"></i>
+                </a>
+            </div>
+            
+            <div class="copyright">
+                <p>&copy; 2024 K8s Security Scanner. Licensed under MIT License.</p>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        // Scroll animations
+        const observerOptions = {
+            threshold: 0.1,
+            rootMargin: '0px 0px -50px 0px'
+        };
+
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('visible');
+                }
+            });
+        }, observerOptions);
+
+        document.querySelectorAll('.fade-in').forEach(el => {
+            observer.observe(el);
+        });
+
+        // Smooth scrolling for navigation links
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                const target = document.querySelector(this.getAttribute('href'));
+                if (target) {
+                    target.scrollIntoView({
+                        behavior: 'smooth',
+                        block: 'start'
+                    });
+                }
+            });
+        });
+
+        // Terminal typing effect
+        const terminalContent = document.querySelector('.terminal-content');
+        const originalText = terminalContent.textContent;
+        terminalContent.textContent = '';
+
+        let index = 0;
+        const typeSpeed = 20;
+
+        function typeWriter() {
+            if (index < originalText.length) {
+                terminalContent.textContent += originalText.charAt(index);
+                index++;
+                setTimeout(typeWriter, typeSpeed);
+            }
+        }
+
+        // Start typing effect when terminal comes into view
+        const terminalObserver = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    setTimeout(typeWriter, 1000);
+                    terminalObserver.unobserve(entry.target);
+                }
+            });
+        }, { threshold: 0.5 });
+
+        terminalObserver.observe(document.querySelector('.terminal-window'));
+
+        // Parallax effect for hero section
+        window.addEventListener('scroll', () => {
+            const scrolled = window.pageYOffset;
+            const parallax = document.querySelector('.hero');
+            const speed = scrolled * 0.5;
+            parallax.style.transform = `translateY(${speed}px)`;
+        });
+
+        // Matrix rain effect
+        function createMatrixRain() {
+            const canvas = document.createElement('canvas');
+            canvas.className = 'matrix-bg';
+            document.body.appendChild(canvas);
+            
+            const ctx = canvas.getContext('2d');
+            
+            function resizeCanvas() {
+                canvas.width = window.innerWidth;
+                canvas.height = window.innerHeight;
+            }
+            
+            resizeCanvas();
+            window.addEventListener('resize', resizeCanvas);
+            
+            const chars = '01';
+            const charSize = 14;
+            const columns = canvas.width / charSize;
+            const drops = Array(Math.floor(columns)).fill(1);
+            
+            function draw() {
+                ctx.fillStyle = 'rgba(0, 0, 0, 0.05)';
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
+                
+                ctx.fillStyle = '#00ff88';
+                ctx.font = `${charSize}px monospace`;
+                
+                for (let i = 0; i < drops.length; i++) {
+                    const text = chars[Math.floor(Math.random() * chars.length)];
+                    ctx.fillText(text, i * charSize, drops[i] * charSize);
+                    
+                    if (drops[i] * charSize > canvas.height && Math.random() > 0.975) {
+                        drops[i] = 0;
+                    }
+                    drops[i]++;
+                }
+            }
+            
+            setInterval(draw, 100);
+        }
+        
+        createMatrixRain();
+    </script>
+</body>
+</html>

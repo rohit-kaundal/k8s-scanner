@@ -18,6 +18,7 @@ var (
 	namespace  string
 	quietMode  bool
 	paginate   bool
+	rulesDir   string
 )
 
 var scanCmd = &cobra.Command{
@@ -53,6 +54,7 @@ Examples:
 			KubeConfig: kubeconfig,
 			Standards:  standards,
 			Namespace:  namespace,
+			RulesDir:   rulesDir,
 		}
 
 		s, err := scanner.New(config)
@@ -119,4 +121,5 @@ func init() {
 	scanCmd.Flags().StringSliceVarP(&standards, "standards", "s", []string{"cis", "nist"}, "Security standards to check (cis, nist)")
 	scanCmd.Flags().StringVarP(&namespace, "namespace", "n", "", "Scan specific namespace (default: all namespaces)")
 	scanCmd.Flags().BoolVarP(&quietMode, "quiet", "q", false, "Quiet mode: disable typing effects and progress bars")
+	scanCmd.Flags().StringVarP(&rulesDir, "rules-dir", "r", "", "Directory containing rule JSON files (default: config/rules)")
 }

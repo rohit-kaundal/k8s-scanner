@@ -113,3 +113,8 @@ func (c *Client) GetNodes(ctx context.Context) (*corev1.NodeList, error) {
 func (c *Client) GetNamespaces(ctx context.Context) (*corev1.NamespaceList, error) {
 	return c.clientset.CoreV1().Namespaces().List(ctx, metav1.ListOptions{})
 }
+
+// GetClientset returns the underlying Kubernetes clientset
+func (c *Client) GetClientset() *kubernetes.Clientset {
+	return c.clientset
+}

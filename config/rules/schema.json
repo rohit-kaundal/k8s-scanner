@@ -1,0 +1,120 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "K8s Scanner Rule Schema",
+  "description": "JSON schema for Kubernetes security scanner rules",
+  "type": "object",
+  "properties": {
+    "version": {
+      "type": "string",
+      "description": "Schema version"
+    },
+    "rules": {
+      "type": "array",
+      "items": {
+        "$ref": "#/definitions/Rule"
+      }
+    }
+  },
+  "required": ["version", "rules"],
+  "definitions": {
+    "Rule": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique rule identifier (e.g., CIS-5.1.1)"
+        },
+        "title": {
+          "type": "string",
+          "description": "Human-readable rule title"
+        },
+        "description": {
+          "type": "string",
+          "description": "Detailed description of what the rule checks"
+        },
+        "standard": {
+          "type": "string",
+          "enum": ["cis", "nist"],
+          "description": "Security standard this rule belongs to"
+        },
+        "section": {
+          "type": "string",
+          "description": "Section within the standard"
+        },
+        "severity": {
+          "type": "string",
+          "enum": ["low", "medium", "high", "critical"],
+          "description": "Rule severity level"
+        },
+        "enabled": {
+          "type": "boolean",
+          "default": true,
+          "description": "Whether the rule is enabled by default"
+        },
+        "check": {
+          "$ref": "#/definitions/Check"
+        },
+        "remediation": {
+          "type": "string",
+          "description": "How to fix violations of this rule"
+        },
+        "references": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "format": "uri"
+          },
+          "description": "Related documentation links"
+        }
+      },
+      "required": ["id", "title", "description", "standard", "section", "severity", "check", "remediation"]
+    },
+    "Check": {
+      "type": "object",
+      "properties": {
+        "type": {
+          "type": "string",
+          "enum": ["pod", "secret", "clusterrole", "clusterrolebinding", "service", "networkpolicy", "custom"],
+          "description": "Type of Kubernetes resource to check"
+        },
+        "conditions": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/Condition"
+          },
+          "description": "List of conditions that must be met for the rule to pass/fail"
+        },
+        "logic": {
+          "type": "string",
+          "enum": ["and", "or"],
+          "default": "and",
+          "description": "Logic operator for combining conditions"
+        }
+      },
+      "required": ["type", "conditions"]
+    },
+    "Condition": {
+      "type": "object",
+      "properties": {
+        "field": {
+          "type": "string",
+          "description": "JSON path to the field to check (e.g., 'spec.containers[*].securityContext.privileged')"
+        },
+        "operator": {
+          "type": "string",
+          "enum": ["equals", "not_equals", "exists", "not_exists", "contains", "not_contains", "matches", "not_matches", "greater_than", "less_than"],
+          "description": "Comparison operator"
+        },
+        "value": {
+          "description": "Expected value for comparison (can be string, number, boolean, or array)"
+        },
+        "expected_result": {
+          "type": "string",
+          "enum": ["pass", "fail"],
+          "description": "Whether this condition should pass or fail to comply with the rule"
+        }
+      },
+      "required": ["field", "operator", "expected_result"]
+    }
+  }
+}
