@@ -1,31 +1,65 @@
 package rules
 
 import (
+	"fmt"
+	"path/filepath"
+
 	"k8s-scanner/pkg/types"
-	"k8s-scanner/pkg/rules/cis"
-	"k8s-scanner/pkg/rules/nist"
+	"k8s-scanner/pkg/rules/json"
 )
 
-func RegisterCISRules(registry *types.RuleRegistry) {
-	registry.Register(cis.NewPodSecurityContextRule())
-	registry.Register(cis.NewPrivilegedContainerRule())
-	registry.Register(cis.NewRootFilesystemRule())
-	registry.Register(cis.NewCapabilitiesRule())
-	registry.Register(cis.NewHostNetworkRule())
-	registry.Register(cis.NewHostPIDRule())
-	registry.Register(cis.NewHostIPCRule())
-	registry.Register(cis.NewSeccompProfileRule())
-	registry.Register(cis.NewAppArmorProfileRule())
-	registry.Register(cis.NewServiceAccountTokenRule())
+// RegisterJSONRules loads and registers rules from JSON files
+func RegisterJSONRules(registry *types.RuleRegistry, rulesDir string) error {
+	rules, err := json.LoadRulesFromDirectory(rulesDir)
+	if err != nil {
+		return fmt.Errorf("failed to load JSON rules: %v", err)
+	}
+
+	for _, rule := range rules {
+		registry.Register(rule)
+	}
+
+	return nil
 }
 
-func RegisterNISTRules(registry *types.RuleRegistry) {
-	registry.Register(nist.NewImageVulnerabilityRule())
-	registry.Register(nist.NewContainerRuntimeRule())
-	registry.Register(nist.NewNetworkSegmentationRule())
-	registry.Register(nist.NewResourceLimitsRule())
-	registry.Register(nist.NewSecretManagementRule())
-	registry.Register(nist.NewAccessControlRule())
-	registry.Register(nist.NewLoggingMonitoringRule())
-	registry.Register(nist.NewImageSigningRule())
+// RegisterCISRules loads CIS rules from JSON file
+func RegisterCISRules(registry *types.RuleRegistry, rulesDir string) error {
+	cisFile := filepath.Join(rulesDir, "cis.json")
+	rules, err := json.LoadRulesFromFile(cisFile)
+	if err != nil {
+		return fmt.Errorf("failed to load CIS rules: %v", err)
+	}
+
+	for _, rule := range rules {
+		registry.Register(rule)
+	}
+
+	return nil
+}
+
+// RegisterNISTRules loads NIST rules from JSON file
+func RegisterNISTRules(registry *types.RuleRegistry, rulesDir string) error {
+	nistFile := filepath.Join(rulesDir, "nist.json")
+	rules, err := json.LoadRulesFromFile(nistFile)
+	if err != nil {
+		return fmt.Errorf("failed to load NIST rules: %v", err)
+	}
+
+	for _, rule := range rules {
+		registry.Register(rule)
+	}
+
+	return nil
+}
+
+// Legacy support - keeping for backward compatibility
+// TODO: Remove once migration is complete
+func RegisterCISRulesLegacy(registry *types.RuleRegistry) {
+	// Legacy hardcoded rules - deprecated
+	// These will be removed in favor of JSON-based rules
+}
+
+func RegisterNISTRulesLegacy(registry *types.RuleRegistry) {
+	// Legacy hardcoded rules - deprecated
+	// These will be removed in favor of JSON-based rules
 }

@@ -1,0 +1,248 @@
+{
+  "version": "1.0.0",
+  "rules": [
+    {
+      "id": "CIS-5.1.1",
+      "title": "Ensure that the cluster-admin role is only used where required",
+      "description": "The cluster-admin role should only be used where required as it provides wide-ranging powers over the environment.",
+      "standard": "cis",
+      "section": "5.1.1",
+      "severity": "high",
+      "enabled": true,
+      "check": {
+        "type": "clusterrolebinding",
+        "conditions": [
+          {
+            "field": "roleRef.name",
+            "operator": "equals",
+            "value": "cluster-admin",
+            "expected_result": "fail"
+          }
+        ]
+      },
+      "remediation": "Identify all clusterrolebindings to the cluster-admin role. Check if they are used and if they need this role or if they could use a role with fewer privileges. Where possible, first bind users to a lower privileged role and then remove the clusterrolebinding to the cluster-admin role.",
+      "references": [
+        "https://kubernetes.io/docs/reference/access-authn-authz/rbac/"
+      ]
+    },
+    {
+      "id": "CIS-5.1.2",
+      "title": "Minimize the admission of privileged containers",
+      "description": "Do not generally permit containers to be run with the securityContext.privileged flag set to true.",
+      "standard": "cis",
+      "section": "5.1.2",
+      "severity": "high",
+      "enabled": true,
+      "check": {
+        "type": "pod",
+        "conditions": [
+          {
+            "field": "spec.containers[*].securityContext.privileged",
+            "operator": "equals",
+            "value": true,
+            "expected_result": "fail"
+          }
+        ]
+      },
+      "remediation": "Create a PSP as described in the CIS documentation, ensuring that the .spec.privileged field is omitted or set to false.",
+      "references": [
+        "https://kubernetes.io/docs/concepts/policy/pod-security-policy/"
+      ]
+    },
+    {
+      "id": "CIS-5.1.3",
+      "title": "Minimize the admission of containers with allowPrivilegeEscalation",
+      "description": "Do not generally permit containers to be run with the allowPrivilegeEscalation flag set to true.",
+      "standard": "cis",
+      "section": "5.1.3",
+      "severity": "high",
+      "enabled": true,
+      "check": {
+        "type": "pod",
+        "conditions": [
+          {
+            "field": "spec.containers[*].securityContext.allowPrivilegeEscalation",
+            "operator": "equals",
+            "value": true,
+            "expected_result": "fail"
+          }
+        ]
+      },
+      "remediation": "Create a PSP as described in the CIS documentation, ensuring that the .spec.allowPrivilegeEscalation field is omitted or set to false.",
+      "references": [
+        "https://kubernetes.io/docs/concepts/policy/pod-security-policy/"
+      ]
+    },
+    {
+      "id": "CIS-5.1.4",
+      "title": "Minimize the admission of containers with capabilities",
+      "description": "Do not generally permit containers with capabilities",
+      "standard": "cis",
+      "section": "5.1.4",
+      "severity": "medium",
+      "enabled": true,
+      "check": {
+        "type": "pod",
+        "conditions": [
+          {
+            "field": "spec.containers[*].securityContext.capabilities.add",
+            "operator": "exists",
+            "expected_result": "fail"
+          }
+        ]
+      },
+      "remediation": "Review the use of capabilities in applications running on your cluster. Where a namespace contains applications which do not require any Linux capabilities to operate consider adding a PSP which forbids the admission of containers which do not drop all capabilities.",
+      "references": [
+        "https://kubernetes.io/docs/concepts/policy/pod-security-policy/"
+      ]
+    },
+    {
+      "id": "CIS-5.1.5",
+      "title": "Minimize the admission of containers with hostNetwork",
+      "description": "Do not generally permit containers to be run with the hostNetwork flag set to true.",
+      "standard": "cis",
+      "section": "5.1.5",
+      "severity": "high",
+      "enabled": true,
+      "check": {
+        "type": "pod",
+        "conditions": [
+          {
+            "field": "spec.hostNetwork",
+            "operator": "equals",
+            "value": true,
+            "expected_result": "fail"
+          }
+        ]
+      },
+      "remediation": "Create a PSP as described in the CIS documentation, ensuring that the .spec.hostNetwork field is omitted or set to false.",
+      "references": [
+        "https://kubernetes.io/docs/concepts/policy/pod-security-policy/"
+      ]
+    },
+    {
+      "id": "CIS-5.1.6",
+      "title": "Minimize the admission of containers with hostPID",
+      "description": "Do not generally permit containers to be run with the hostPID flag set to true.",
+      "standard": "cis",
+      "section": "5.1.6",
+      "severity": "high",
+      "enabled": true,
+      "check": {
+        "type": "pod",
+        "conditions": [
+          {
+            "field": "spec.hostPID",
+            "operator": "equals",
+            "value": true,
+            "expected_result": "fail"
+          }
+        ]
+      },
+      "remediation": "Create a PSP as described in the CIS documentation, ensuring that the .spec.hostPID field is omitted or set to false.",
+      "references": [
+        "https://kubernetes.io/docs/concepts/policy/pod-security-policy/"
+      ]
+    },
+    {
+      "id": "CIS-5.1.7",
+      "title": "Minimize the admission of containers with hostIPC",
+      "description": "Do not generally permit containers to be run with the hostIPC flag set to true.",
+      "standard": "cis",
+      "section": "5.1.7",
+      "severity": "high",
+      "enabled": true,
+      "check": {
+        "type": "pod",
+        "conditions": [
+          {
+            "field": "spec.hostIPC",
+            "operator": "equals",
+            "value": true,
+            "expected_result": "fail"
+          }
+        ]
+      },
+      "remediation": "Create a PSP as described in the CIS documentation, ensuring that the .spec.hostIPC field is omitted or set to false.",
+      "references": [
+        "https://kubernetes.io/docs/concepts/policy/pod-security-policy/"
+      ]
+    },
+    {
+      "id": "CIS-5.1.8",
+      "title": "Minimize the admission of containers with seccomp profile",
+      "description": "Enable default seccomp profile in your pod definitions.",
+      "standard": "cis",
+      "section": "5.1.8",
+      "severity": "medium",
+      "enabled": true,
+      "check": {
+        "type": "pod",
+        "conditions": [
+          {
+            "field": "spec.securityContext.seccompProfile",
+            "operator": "not_exists",
+            "expected_result": "fail"
+          },
+          {
+            "field": "spec.containers[*].securityContext.seccompProfile",
+            "operator": "not_exists",
+            "expected_result": "fail"
+          }
+        ],
+        "logic": "and"
+      },
+      "remediation": "Use security context to enable the default seccomp profile in your pod definitions. An example is as below: securityContext: seccompProfile: type: RuntimeDefault",
+      "references": [
+        "https://kubernetes.io/docs/tutorials/clusters/seccomp/"
+      ]
+    },
+    {
+      "id": "CIS-5.1.9",
+      "title": "Minimize the admission of containers with AppArmor",
+      "description": "Enabled AppArmor Profile in your pod definitions.",
+      "standard": "cis",
+      "section": "5.1.9",
+      "severity": "medium",
+      "enabled": true,
+      "check": {
+        "type": "pod",
+        "conditions": [
+          {
+            "field": "metadata.annotations['container.apparmor.security.beta.kubernetes.io/*']",
+            "operator": "not_exists",
+            "expected_result": "fail"
+          }
+        ]
+      },
+      "remediation": "Review AppArmor documentation and setup AppArmor profiles for your containers. Once configured, ensure that all containers are configured to use the AppArmor profile by setting the following in the pod specification: metadata: annotations: container.apparmor.security.beta.kubernetes.io/nginx: runtime/default",
+      "references": [
+        "https://kubernetes.io/docs/tutorials/clusters/apparmor/"
+      ]
+    },
+    {
+      "id": "CIS-5.1.10",
+      "title": "Minimize the admission of containers with service account tokens",
+      "description": "Do not generally permit containers to be run with the automountServiceAccountToken flag set to true.",
+      "standard": "cis",
+      "section": "5.1.10",
+      "severity": "medium",
+      "enabled": true,
+      "check": {
+        "type": "pod",
+        "conditions": [
+          {
+            "field": "spec.automountServiceAccountToken",
+            "operator": "equals",
+            "value": true,
+            "expected_result": "fail"
+          }
+        ]
+      },
+      "remediation": "Create a PSP as described in the CIS documentation, ensuring that the .spec.automountServiceAccountToken field is omitted or set to false.",
+      "references": [
+        "https://kubernetes.io/docs/tasks/configure-pod-container/configure-service-account/"
+      ]
+    }
+  ]
+}

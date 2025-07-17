@@ -9,6 +9,7 @@ type Config struct {
 	KubeConfig string
 	Standards  []string
 	Namespace  string
+	RulesDir   string
 }
 
 type Scanner interface {

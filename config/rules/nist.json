@@ -1,0 +1,245 @@
+{
+  "version": "1.0.0",
+  "rules": [
+    {
+      "id": "NIST-4.1.1",
+      "title": "Image vulnerability scanning",
+      "description": "Ensure container images are scanned for vulnerabilities and comply with organizational policies",
+      "standard": "nist",
+      "section": "4.1.1",
+      "severity": "high",
+      "enabled": true,
+      "check": {
+        "type": "pod",
+        "conditions": [
+          {
+            "field": "spec.containers[*].image",
+            "operator": "not_contains",
+            "value": "latest",
+            "expected_result": "pass"
+          },
+          {
+            "field": "spec.containers[*].image",
+            "operator": "matches",
+            "value": "^[^:]+:[^:]+$",
+            "expected_result": "pass"
+          }
+        ],
+        "logic": "and"
+      },
+      "remediation": "Use specific image tags instead of 'latest' and ensure all images are scanned for vulnerabilities before deployment. Implement image scanning in your CI/CD pipeline.",
+      "references": [
+        "https://nvlpubs.nist.gov/nistpubs/SpecialPublications/NIST.SP.800-190.pdf"
+      ]
+    },
+    {
+      "id": "NIST-4.2.1",
+      "title": "Container runtime security",
+      "description": "Ensure container runtime is configured securely with appropriate security contexts",
+      "standard": "nist",
+      "section": "4.2.1",
+      "severity": "high",
+      "enabled": true,
+      "check": {
+        "type": "pod",
+        "conditions": [
+          {
+            "field": "spec.containers[*].securityContext.runAsNonRoot",
+            "operator": "equals",
+            "value": true,
+            "expected_result": "pass"
+          },
+          {
+            "field": "spec.containers[*].securityContext.readOnlyRootFilesystem",
+            "operator": "equals",
+            "value": true,
+            "expected_result": "pass"
+          }
+        ],
+        "logic": "and"
+      },
+      "remediation": "Configure security context to run containers as non-root user and with read-only root filesystem. Set runAsNonRoot: true and readOnlyRootFilesystem: true in securityContext.",
+      "references": [
+        "https://kubernetes.io/docs/tasks/configure-pod-container/security-context/"
+      ]
+    },
+    {
+      "id": "NIST-4.3.1",
+      "title": "Network segmentation and firewalling",
+      "description": "Ensure proper network segmentation using NetworkPolicies",
+      "standard": "nist",
+      "section": "4.3.1",
+      "severity": "medium",
+      "enabled": true,
+      "check": {
+        "type": "networkpolicy",
+        "conditions": [
+          {
+            "field": "spec.policyTypes",
+            "operator": "contains",
+            "value": "Ingress",
+            "expected_result": "pass"
+          },
+          {
+            "field": "spec.policyTypes",
+            "operator": "contains",
+            "value": "Egress",
+            "expected_result": "pass"
+          }
+        ],
+        "logic": "or"
+      },
+      "remediation": "Implement NetworkPolicies to control traffic flow between pods. Define both ingress and egress rules to restrict network access according to the principle of least privilege.",
+      "references": [
+        "https://kubernetes.io/docs/concepts/services-networking/network-policies/"
+      ]
+    },
+    {
+      "id": "NIST-4.4.1",
+      "title": "Resource limits and constraints",
+      "description": "Ensure containers have appropriate resource limits and requests defined",
+      "standard": "nist",
+      "section": "4.4.1",
+      "severity": "medium",
+      "enabled": true,
+      "check": {
+        "type": "pod",
+        "conditions": [
+          {
+            "field": "spec.containers[*].resources.limits.cpu",
+            "operator": "exists",
+            "expected_result": "pass"
+          },
+          {
+            "field": "spec.containers[*].resources.limits.memory",
+            "operator": "exists",
+            "expected_result": "pass"
+          },
+          {
+            "field": "spec.containers[*].resources.requests.cpu",
+            "operator": "exists",
+            "expected_result": "pass"
+          },
+          {
+            "field": "spec.containers[*].resources.requests.memory",
+            "operator": "exists",
+            "expected_result": "pass"
+          }
+        ],
+        "logic": "and"
+      },
+      "remediation": "Define resource limits and requests for all containers to prevent resource exhaustion attacks and ensure fair resource allocation. Set both limits and requests for CPU and memory.",
+      "references": [
+        "https://kubernetes.io/docs/concepts/configuration/manage-resources-containers/"
+      ]
+    },
+    {
+      "id": "NIST-4.5.1",
+      "title": "Secrets management",
+      "description": "Ensure sensitive data is properly managed using Kubernetes secrets",
+      "standard": "nist",
+      "section": "4.5.1",
+      "severity": "high",
+      "enabled": true,
+      "check": {
+        "type": "pod",
+        "conditions": [
+          {
+            "field": "spec.containers[*].env[*].value",
+            "operator": "not_matches",
+            "value": "(?i)(password|token|key|secret|api_key|apikey)",
+            "expected_result": "pass"
+          }
+        ]
+      },
+      "remediation": "Use Kubernetes secrets to manage sensitive data instead of hardcoding them in environment variables. Reference secrets using valueFrom.secretKeyRef in environment variables.",
+      "references": [
+        "https://kubernetes.io/docs/concepts/configuration/secret/"
+      ]
+    },
+    {
+      "id": "NIST-4.6.1",
+      "title": "Access control and authentication",
+      "description": "Ensure proper access controls are in place for container and cluster access",
+      "standard": "nist",
+      "section": "4.6.1",
+      "severity": "high",
+      "enabled": true,
+      "check": {
+        "type": "clusterrolebinding",
+        "conditions": [
+          {
+            "field": "subjects[*].kind",
+            "operator": "not_equals",
+            "value": "User",
+            "expected_result": "pass"
+          },
+          {
+            "field": "subjects[*].name",
+            "operator": "not_equals",
+            "value": "system:anonymous",
+            "expected_result": "pass"
+          }
+        ],
+        "logic": "and"
+      },
+      "remediation": "Implement proper RBAC controls and avoid binding cluster roles to anonymous users or overly broad user groups. Use service accounts and specific user identities.",
+      "references": [
+        "https://kubernetes.io/docs/reference/access-authn-authz/rbac/"
+      ]
+    },
+    {
+      "id": "NIST-4.7.1",
+      "title": "Logging and monitoring",
+      "description": "Ensure comprehensive logging and monitoring is configured for security events",
+      "standard": "nist",
+      "section": "4.7.1",
+      "severity": "medium",
+      "enabled": true,
+      "check": {
+        "type": "pod",
+        "conditions": [
+          {
+            "field": "metadata.labels['app.kubernetes.io/name']",
+            "operator": "exists",
+            "expected_result": "pass"
+          },
+          {
+            "field": "metadata.labels['app.kubernetes.io/version']",
+            "operator": "exists",
+            "expected_result": "pass"
+          }
+        ],
+        "logic": "and"
+      },
+      "remediation": "Implement comprehensive logging and monitoring for all containers and cluster components. Use standard labels for better observability and monitoring.",
+      "references": [
+        "https://kubernetes.io/docs/concepts/cluster-administration/logging/"
+      ]
+    },
+    {
+      "id": "NIST-4.8.1",
+      "title": "Image signing and verification",
+      "description": "Ensure container images are signed and verified before deployment",
+      "standard": "nist",
+      "section": "4.8.1",
+      "severity": "medium",
+      "enabled": true,
+      "check": {
+        "type": "pod",
+        "conditions": [
+          {
+            "field": "spec.containers[*].image",
+            "operator": "contains",
+            "value": "@sha256:",
+            "expected_result": "pass"
+          }
+        ]
+      },
+      "remediation": "Use image digests (SHA256) instead of tags to ensure image integrity and implement image signing using tools like Cosign or Notary v2.",
+      "references": [
+        "https://kubernetes.io/docs/concepts/containers/images/"
+      ]
+    }
+  ]
+}

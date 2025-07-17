@@ -26,12 +26,24 @@ func New(config *Config) (Scanner, error) {
 
 	registry := NewRuleRegistry()
 	
+	// Set default rules directory if not specified
+	rulesDir := config.RulesDir
+	if rulesDir == "" {
+		rulesDir = "config/rules"
+	}
+	
 	for _, standard := range config.Standards {
 		switch standard {
 		case "cis":
-			rules.RegisterCISRules(registry)
+			err := rules.RegisterCISRules(registry, rulesDir)
+			if err != nil {
+				logrus.WithError(err).WithField("standard", standard).Error("Failed to register CIS rules")
+			}
 		case "nist":
-			rules.RegisterNISTRules(registry)
+			err := rules.RegisterNISTRules(registry, rulesDir)
+			if err != nil {
+				logrus.WithError(err).WithField("standard", standard).Error("Failed to register NIST rules")
+			}
 		default:
 			logrus.WithField("standard", standard).Warn("Unknown standard, skipping")
 		}
